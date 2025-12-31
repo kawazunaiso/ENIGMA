@@ -7,18 +7,15 @@
 <style>
   :root{
     --bg:#f4f4f6;
-    --ink:rgba(17,24,39,.75);
-    --line:rgba(17,24,39,.12);
     --panel:#ffffff;
     --border:#e5e7eb;
   }
   html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;}
   #wrap{height:100%;display:flex;flex-direction:column;}
-  #topbar{
-    background:#111827;color:#fff;padding:10px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
-  }
-  #topbar .title{font-weight:900;}
+  #topbar{background:#111827;color:#fff;padding:10px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  #topbar .title{font-weight:900}
   #topbar .hint{opacity:.85;font-size:12px}
+
   #main{flex:1;min-height:0;display:flex;}
   #left{flex:1;min-width:0;display:flex;flex-direction:column;}
   #canvasWrap{flex:1;min-height:0;position:relative;}
@@ -56,25 +53,27 @@
     position:absolute; right:8px; bottom:6px;
     font-size:12px; font-variant-numeric:tabular-nums;
     padding:2px 6px; border-radius:10px;
-    background:rgba(255,255,255,.75);
+    background:rgba(255,255,255,.78);
     border:1px solid rgba(0,0,0,.08);
     color:#111827;
   }
   .pile .badge{
     position:absolute; left:8px; bottom:6px;
     font-size:11px; padding:2px 6px; border-radius:10px;
-    background:rgba(255,255,255,.75);
+    background:rgba(255,255,255,.78);
     border:1px solid rgba(0,0,0,.08);
     color:#111827;
   }
 
-  /* 置き場を「三角」と「平行四辺形」の見た目にする */
+  /* iPad対策：clip-path は webkit を追加 */
   .pile.tri{
-    clip-path: polygon(10% 50%, 92% 14%, 92% 86%);
+    clip-path: polygon(50% 10%, 12% 90%, 88% 90%);          /* 上向き三角 */
+    -webkit-clip-path: polygon(50% 10%, 12% 90%, 88% 90%);
     border-radius:10px;
   }
   .pile.rho{
-    clip-path: polygon(12% 50%, 50% 12%, 88% 50%, 50% 88%);
+    clip-path: polygon(18% 50%, 50% 12%, 82% 50%, 50% 88%);          /* 平行四辺形 */
+    -webkit-clip-path: polygon(18% 50%, 50% 12%, 82% 50%, 50% 88%);
     border-radius:10px;
   }
 
@@ -91,7 +90,7 @@
     mix-blend-mode:overlay;
   }
 
-  /* 右パネル（iPadでは邪魔なら自動で隠す） */
+  /* 右パネル（狭い画面では隠す） */
   #right{
     width:280px; max-width:42vw;
     border-left:1px solid var(--border);
@@ -101,17 +100,10 @@
   #right h3{margin:6px 0 6px;font-size:14px}
   #right p{margin:6px 0;font-size:12px;line-height:1.45;color:#374151}
   .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-  button{
-    border:1px solid #d1d5db;background:#fff;border-radius:10px;padding:8px 10px;
-    font-size:12px;cursor:pointer;
-  }
+  button{border:1px solid #d1d5db;background:#fff;border-radius:10px;padding:8px 10px;font-size:12px;cursor:pointer;}
   button:active{transform:translateY(1px)}
   #stats{margin-top:10px;font-size:11px;opacity:.85}
-  #err{
-    margin-top:10px;padding:8px 10px;border-radius:10px;
-    background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;
-    font-size:12px;white-space:pre-wrap;display:none;
-  }
+  #err{margin-top:10px;padding:8px 10px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;font-size:12px;white-space:pre-wrap;display:none;}
 
   @media (max-width: 1024px){
     #right{display:none;}
@@ -122,7 +114,7 @@
 <div id="wrap">
   <div id="topbar">
     <div class="title">ENIGMA（試作）</div>
-    <div class="hint">ドラッグ配置 / タップ：60°回転 / ダブルタップ：削除（在庫に戻る） / 六角内だけ「吸い付き」</div>
+    <div class="hint">山札からドラッグ / 六角内だけ吸い付き / タップ：60°回転 / ダブルタップ：削除（在庫に戻る）</div>
   </div>
 
   <div id="main">
@@ -130,7 +122,6 @@
       <div id="canvasWrap">
         <canvas id="c"></canvas>
 
-        <!-- 指アイコン -->
         <svg id="finger" viewBox="0 0 64 64" aria-hidden="true">
           <path d="M22 55c-4-2-8-8-8-14V18c0-3 2-5 5-5s5 2 5 5v12"
                 fill="#ffe3c4" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -149,9 +140,9 @@
     <div id="right">
       <h3>操作</h3>
       <p>
-        ・下の置き場（山札）からドラッグして出す（8種×各16枚）<br>
-        ・六角形の中：点・線が吸い付く（スナップ）<br>
-        ・六角形の外：自由に置ける（スナップなし）<br>
+        ・下の山札（▶ / ◀▶）からドラッグして出す（8種×各16枚）<br>
+        ・六角の中：点・線が吸い付く（スナップ）<br>
+        ・六角の外：自由配置（スナップなし）<br>
         ・タップ：60°時計回り回転<br>
         ・ダブルタップ：削除（在庫に戻る）
       </p>
@@ -179,12 +170,12 @@
 
   const SQRT3 = Math.sqrt(3);
 
-  // ====== 調整ノブ（ここだけ触ればサイズ感を合わせやすい） ======
-  // 「▶三角を縦に入れると8個」寄せ：SIDE=2 を基準にしてあります
-  const SIDE = 2;           // 六角の大きさ（内部グリッド密度に影響）
-  const SCALE_K = 4.2;      // 小さいほど盤面が大きく表示される（iPadは4.0〜4.6が扱いやすい）
-  const SNAP_ONLY_INSIDE = true; // 六角の中だけスナップ
-  // ================================================================
+  // ===== 調整ノブ =====
+  const SIDE = 2;          // 盤面（六角）のサイズ
+  const SCALE_K = 4.0;     // 小さいほど盤面が大きくなる（iPadは3.6〜4.6推奨）
+  const SNAP_ONLY_INSIDE = true;
+  const ROT_DEG = 90;      // 見た目を90°回転（向き修正）
+  // ===================
 
   function uuid(){
     try{ if (window.crypto && crypto.randomUUID) return crypto.randomUUID(); }catch(_){}
@@ -193,16 +184,10 @@
     });
   }
 
-  // 格子（点）: axial(q,r) → world(x,y)
-  function axialToWorld(q, r){
-    return { x: q + r/2, y: (SQRT3/2) * r };
-  }
-  function worldToAxial(x, y){
-    const r = (2 / SQRT3) * y;
-    const q = x - r/2;
-    return { q, r };
-  }
-  // 六角格子の丸め（cube rounding）
+  // axial(q,r) <-> world(x,y)
+  function axialToWorld(q, r){ return { x: q + r/2, y: (SQRT3/2) * r }; }
+  function worldToAxial(x, y){ const r = (2 / SQRT3) * y; const q = x - r/2; return { q, r }; }
+
   function axialRound(qf, rf){
     let x=qf, z=rf, y=-x-z;
     let rx=Math.round(x), ry=Math.round(y), rz=Math.round(z);
@@ -212,7 +197,7 @@
     else rz=-rx-ry;
     return { q: rx, r: rz };
   }
-  // 60°回転（軸座標）
+
   function rotateAxial(q,r,k){
     let x=q, z=r, y=-x-z;
     k=((k%6)+6)%6;
@@ -223,20 +208,17 @@
     return { q:x, r:z };
   }
 
-  // 三角形（頂点は格子点3つ）
-  const triUp = (q,r)=>[{q,r},{q:q+1,r},{q,r:r+1}];                 // ▶っぽい向き
-  const triDown = (q,r)=>[{q:q+1,r:r+1},{q:q+1,r},{q,r:r+1}];       // ◀っぽい向き
+  const triUp   = (q,r)=>[{q,r},{q:q+1,r},{q,r:r+1}];
+  const triDown = (q,r)=>[{q:q+1,r:r+1},{q:q+1,r},{q,r:r+1}];
   function triKey(vs){
     const s = vs.slice().sort((a,b)=>(a.q-b.q)||(a.r-b.r));
     return `${s[0].q},${s[0].r}|${s[1].q},${s[1].r}|${s[2].q},${s[2].r}`;
   }
 
-  // ポリゴン内判定
   function pointInPoly(pt, poly){
     let inside=false;
     for (let i=0,j=poly.length-1;i<poly.length;j=i++){
-      const xi=poly[i].x, yi=poly[i].y;
-      const xj=poly[j].x, yj=poly[j].y;
+      const xi=poly[i].x, yi=poly[i].y, xj=poly[j].x, yj=poly[j].y;
       const inter = ((yi>pt.y)!=(yj>pt.y)) && (pt.x < (xj-xi)*(pt.y-yi)/(yj-yi+1e-12)+xi);
       if (inter) inside=!inside;
     }
@@ -251,63 +233,68 @@
     return { x:sx/3, y:sy/3 };
   }
 
-  // 六角形（盤面）ポリゴン（world）
   function hexVerticesWorld(){
-    const R = SIDE*2; // 半径
+    const R = SIDE*2;
     const verts=[];
     for (let i=0;i<6;i++){
-      const ang = (-90 + i*60) * Math.PI/180; // pointy-top
+      const ang = (-90 + i*60) * Math.PI/180;
       verts.push({ x:R*Math.cos(ang), y:R*Math.sin(ang) });
     }
     return verts;
   }
   const hexPoly = hexVerticesWorld();
-  function isInsideHexWorld(x,y){
-    return pointInPoly({x,y}, hexPoly);
-  }
+  function isInsideHexWorld(x,y){ return pointInPoly({x,y}, hexPoly); }
 
-  // 盤面の「三角セル」集合（BoardSet）
+  // 盤面セル
   const BoardSet = new Set();
   const BoardTris = [];
   function rebuildBoard(){
     BoardSet.clear(); BoardTris.length=0;
-    const lim = SIDE*7; // 探索範囲（余裕）
+    const lim = SIDE*7;
     for (let q=-lim;q<=lim;q++){
       for (let r=-lim;r<=lim;r++){
         const up=triUp(q,r);
-        if (pointInPoly(centroidWorld(up), hexPoly)){
-          const k=triKey(up); BoardSet.add(k); BoardTris.push(up);
-        }
+        if (pointInPoly(centroidWorld(up), hexPoly)){ const k=triKey(up); BoardSet.add(k); BoardTris.push(up); }
         const dn=triDown(q,r);
-        if (pointInPoly(centroidWorld(dn), hexPoly)){
-          const k=triKey(dn); BoardSet.add(k); BoardTris.push(dn);
-        }
+        if (pointInPoly(centroidWorld(dn), hexPoly)){ const k=triKey(dn); BoardSet.add(k); BoardTris.push(dn); }
       }
     }
   }
   rebuildBoard();
 
-  // ====== ピース定義 ======
-  // 三角（▶）: triUp(0,0)
-  // 平行四辺形: ▶ + ◀ をくっつけた形（上下の2三角）
+  // ピース
   const SHAPES = {
-    TRI: { name:"三角", localTris:[triUp(0,0)] },
-    RHO: { name:"平行四辺形", localTris:[triUp(0,0), triDown(0,0)] }
+    TRI: { localTris:[triUp(0,0)] },
+    RHO: { localTris:[triUp(0,0), triDown(0,0)] } // 当たり判定用
   };
-
   const PATTERNS = ["DW","MW","LW","WW"];
   const TYPES = [];
   for (const p of PATTERNS) TYPES.push({ typeId:`TRI_${p}`, shape:"TRI", pattern:p });
   for (const p of PATTERNS) TYPES.push({ typeId:`RHO_${p}`, shape:"RHO", pattern:p });
 
-  const stock = {};
-  for (const t of TYPES) stock[t.typeId] = 16;
-
+  const stock = {}; for (const t of TYPES) stock[t.typeId]=16;
   const pieces = [];
-  let occupied = new Set(); // 盤面内だけ占有する
+  let occupied = new Set();
 
-  // ====== 画面変換 ======
+  // 画面変換（表示だけ90°回転）
   let W=0,H=0,scale=40, origin={x:0,y:0};
+  const ROT = ROT_DEG * Math.PI / 180;
+  const COS = Math.cos(ROT);
+  const SIN = Math.sin(ROT);
+
+  const worldToScreen = (x,y) => {
+    const xr = x*COS - y*SIN;
+    const yr = x*SIN + y*COS;
+    return { x: origin.x + xr*scale, y: origin.y + yr*scale };
+  };
+  const screenToWorld = (sx,sy) => {
+    const x = (sx - origin.x)/scale;
+    const y = (sy - origin.y)/scale;
+    const xr = x*COS + y*SIN;
+    const yr = -x*SIN + y*COS;
+    return { x: xr, y: yr };
+  };
+
   function resize(){
     const rect=canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
@@ -315,19 +302,15 @@
     canvas.height = Math.floor(rect.height*dpr);
     W=canvas.width; H=canvas.height;
 
-    // 右パネルがあっても盤面が見えるように、少し上寄せ（必要なら0にしてOK）
     origin = { x: W/2, y: H/2 };
-
     const minDim = Math.min(rect.width, rect.height);
     scale = (minDim/(SIDE*SCALE_K))*dpr;
+
     draw();
   }
   window.addEventListener('resize', resize);
 
-  const worldToScreen=(x,y)=>({ x:origin.x + x*scale, y:origin.y + y*scale });
-  const screenToWorld=(sx,sy)=>({ x:(sx-origin.x)/scale, y:(sy-origin.y)/scale });
-
-  // ====== テクスチャ（仮の木目） ======
+  // 仮テクスチャ
   function patternFillStyle(pid){
     patternFillStyle.cache ||= {};
     if (patternFillStyle.cache[pid]) return patternFillStyle.cache[pid];
@@ -346,7 +329,6 @@
     return pat;
   }
 
-  // ====== 描画 ======
   function strokeTri(vs){
     ctx.beginPath();
     for (let i=0;i<3;i++){
@@ -356,6 +338,7 @@
     }
     ctx.closePath(); ctx.stroke();
   }
+
   function fillTri(vs, fill, stroke, shadow){
     ctx.save();
     if (shadow){
@@ -376,6 +359,79 @@
     ctx.lineWidth=2*(window.devicePixelRatio||1);
     ctx.strokeStyle=stroke; ctx.stroke();
     ctx.restore();
+  }
+
+  function pieceWorldTris(p){
+    const shape = SHAPES[p.shape];
+    const out=[];
+    for (const tri of shape.localTris){
+      const vs = tri.map(v=>rotateAxial(v.q, v.r, p.rotK));
+      out.push(vs.map(v=>({ q:v.q + p.anchor.q, r:v.r + p.anchor.r })));
+    }
+    return out;
+  }
+  function pieceWorldTriKeys(p){
+    return pieceWorldTris(p).map(tri=>triKey(tri));
+  }
+
+  function canPlace(p){
+    const keys = pieceWorldTriKeys(p);
+    for (const k of keys){
+      if (!BoardSet.has(k)) return false;
+      if (occupied.has(k)) return false;
+    }
+    return true;
+  }
+  function commitPlace(p){
+    if (p.placed && p._keys){ for (const k of p._keys) occupied.delete(k); }
+    const keys = pieceWorldTriKeys(p);
+    for (const k of keys) occupied.add(k);
+    p._keys = keys;
+    p.placed = true;
+    p.lastValid = { anchor:{...p.anchor}, rotK:p.rotK };
+  }
+  function unplace(p){
+    if (p._keys){ for (const k of p._keys) occupied.delete(k); }
+    p._keys=null; p.placed=false;
+  }
+
+  // 描画：RHOは「四角形1枚」として描く（中線を消す）
+  function drawPiece(p, floating){
+    const fill = patternFillStyle(p.pattern);
+    const stroke = floating ? "rgba(17,24,39,.65)" : "rgba(17,24,39,.40)";
+    const dpr = window.devicePixelRatio||1;
+
+    if (p.shape === "RHO"){
+      // 4頂点（軸座標）を回転・移動して四角形で描く
+      const vertsLocal = [
+        {q:0,r:0},{q:1,r:0},{q:1,r:1},{q:0,r:1}
+      ].map(v => rotateAxial(v.q, v.r, p.rotK))
+       .map(v => ({ q: v.q + p.anchor.q, r: v.r + p.anchor.r }));
+
+      ctx.save();
+      if (floating){
+        ctx.shadowColor="rgba(0,0,0,.18)";
+        ctx.shadowBlur=10*dpr;
+        ctx.shadowOffsetY=5*dpr;
+      }
+      ctx.beginPath();
+      for (let i=0;i<4;i++){
+        const w=axialToWorld(vertsLocal[i].q, vertsLocal[i].r);
+        const s=worldToScreen(w.x,w.y);
+        if (i===0) ctx.moveTo(s.x,s.y); else ctx.lineTo(s.x,s.y);
+      }
+      ctx.closePath();
+      ctx.fillStyle=fill; ctx.fill();
+      ctx.shadowColor="transparent";
+      ctx.lineWidth=2*dpr;
+      ctx.strokeStyle=stroke; ctx.stroke();
+      ctx.restore();
+      return;
+    }
+
+    // TRI
+    const tris = pieceWorldTris(p);
+    for (const t of tris) fillTri(t, fill, stroke, floating);
   }
 
   function draw(){
@@ -404,83 +460,29 @@
     ctx.lineWidth=3*(window.devicePixelRatio||1);
     ctx.stroke();
 
-    // グリッド（薄い）
-    ctx.strokeStyle="rgba(17,24,39,.08)";
-    ctx.lineWidth=1*(window.devicePixelRatio||1);
+    // 仕切り（濃く太く）
+    ctx.strokeStyle="rgba(17,24,39,.18)";
+    ctx.lineWidth=1.4*(window.devicePixelRatio||1);
     for (const tri of BoardTris) strokeTri(tri);
 
-    // ピース（盤面内に置いたもの→浮いてるもの）
+    // ピース
     const placed=pieces.filter(p=>p.placed);
     const floating=pieces.filter(p=>!p.placed);
     for (const p of placed) drawPiece(p,false);
     for (const p of floating) drawPiece(p,true);
 
-    // 統計
     const stats = document.getElementById('stats');
     if (stats){
       stats.textContent = `盤面セル: ${BoardSet.size} / 使用中: ${occupied.size} / ピース数: ${pieces.length}`;
-      stats.style.fontSize="11px";
-      stats.style.opacity=".85";
-      stats.style.marginTop="10px";
     }
   }
 
-  function drawPiece(p, floating){
-    const fill = patternFillStyle(p.pattern);
-    const stroke = floating ? "rgba(17,24,39,.65)" : "rgba(17,24,39,.40)";
-    const tris = pieceWorldTris(p);
-    for (const t of tris) fillTri(t, fill, stroke, floating);
-  }
-
-  // ====== ピース幾何 ======
-  function pieceWorldTris(p){
-    const shape = SHAPES[p.shape];
-    const out=[];
-    for (const tri of shape.localTris){
-      const vs = tri.map(v=>rotateAxial(v.q,v.r,p.rotK));
-      out.push(vs.map(v=>({ q:v.q + p.anchor.q, r:v.r + p.anchor.r })));
-    }
-    return out;
-  }
-  function pieceWorldTriKeys(p){
-    return pieceWorldTris(p).map(tri=>triKey(tri));
-  }
-
-  function canPlace(p){
-    // 盤面内だけ判定
-    const keys = pieceWorldTriKeys(p);
-    for (const k of keys){
-      if (!BoardSet.has(k)) return false;
-      if (occupied.has(k)) return false;
-    }
-    return true;
-  }
-  function commitPlace(p){
-    // 以前の占有を外す
-    if (p.placed && p._keys){
-      for (const k of p._keys) occupied.delete(k);
-    }
-    const keys = pieceWorldTriKeys(p);
-    for (const k of keys) occupied.add(k);
-    p._keys = keys;
-    p.placed = true;
-    p.lastValid = { anchor:{...p.anchor}, rotK:p.rotK };
-  }
-  function unplace(p){
-    if (p._keys){
-      for (const k of p._keys) occupied.delete(k);
-    }
-    p._keys=null;
-    p.placed=false;
-  }
-
-  // ====== 山札UI ======
+  // 山札
   function renderStocks(){
     stocksEl.innerHTML="";
     for (const t of TYPES){
       const div=document.createElement('div');
       div.className = "pile " + (t.shape==="TRI" ? "tri" : "rho");
-      div.dataset.typeId = t.typeId;
 
       const tex=document.createElement('div');
       tex.className = "tex " + t.pattern;
@@ -496,26 +498,25 @@
       count.textContent = stock[t.typeId];
       div.appendChild(count);
 
-      div.addEventListener('pointerdown', (e)=>onPilePointerDown(e, t.typeId));
+      div.addEventListener('pointerdown', (e)=>onPilePointerDown(e, t));
       stocksEl.appendChild(div);
     }
   }
 
-  // ====== 入力（ドラッグ・タップ・ダブルタップ） ======
+  // 入力
   let drag=null;
   let lastTap={time:0,pieceId:null};
 
-  function onPilePointerDown(e, typeId){
+  function onPilePointerDown(e, t){
     e.preventDefault();
-    if (stock[typeId] <= 0) return;
+    if (stock[t.typeId] <= 0) return;
 
-    const t = TYPES.find(x=>x.typeId===typeId);
-    stock[typeId]--;
+    stock[t.typeId]--;
     renderStocks();
 
     const p={
       id: uuid(),
-      typeId,
+      typeId: t.typeId,
       shape: t.shape,
       pattern: t.pattern,
       anchor: {q:0, r:0},
@@ -526,16 +527,16 @@
       _inside:false
     };
 
-    // pointer位置へ出す
+    // pointer位置へ出す（まず自由配置）
     const rect=canvas.getBoundingClientRect();
     const dpr=window.devicePixelRatio||1;
     const sx=(e.clientX-rect.left)*dpr;
     const sy=(e.clientY-rect.top)*dpr;
     const w=screenToWorld(sx,sy);
     const frac=worldToAxial(w.x,w.y);
-    p.anchor = { q: frac.q, r: frac.r }; // まずは自由配置
-    pieces.push(p);
+    p.anchor = { q: frac.q, r: frac.r };
 
+    pieces.push(p);
     startDrag(e,p);
   }
 
@@ -575,15 +576,59 @@
   function findPieceAtScreen(sx,sy){
     for (let i=pieces.length-1;i>=0;i--){
       const p=pieces[i];
-      const tris=pieceWorldTris(p);
-      for (const tri of tris){
-        const A=axialToWorld(tri[0].q,tri[0].r); const As=worldToScreen(A.x,A.y);
-        const B=axialToWorld(tri[1].q,tri[1].r); const Bs=worldToScreen(B.x,B.y);
-        const C=axialToWorld(tri[2].q,tri[2].r); const Cs=worldToScreen(C.x,C.y);
-        if (pointInTri({x:sx,y:sy}, As,Bs,Cs)) return p;
+
+      // RHOは四角形で当たり判定（TRIは三角）
+      if (p.shape==="RHO"){
+        const verts = [
+          {q:0,r:0},{q:1,r:0},{q:1,r:1},{q:0,r:1}
+        ].map(v => rotateAxial(v.q, v.r, p.rotK))
+         .map(v => ({ q: v.q + p.anchor.q, r: v.r + p.anchor.r }))
+         .map(v => {
+           const w=axialToWorld(v.q,v.r);
+           return worldToScreen(w.x,w.y);
+         });
+        // 四角形を2三角に分けて判定
+        const P={x:sx,y:sy};
+        if (pointInTri(P, verts[0], verts[1], verts[2]) || pointInTri(P, verts[0], verts[2], verts[3])) return p;
+      } else {
+        const tris=pieceWorldTris(p);
+        for (const tri of tris){
+          const A=axialToWorld(tri[0].q,tri[0].r); const As=worldToScreen(A.x,A.y);
+          const B=axialToWorld(tri[1].q,tri[1].r); const Bs=worldToScreen(B.x,B.y);
+          const C=axialToWorld(tri[2].q,tri[2].r); const Cs=worldToScreen(C.x,C.y);
+          if (pointInTri({x:sx,y:sy}, As,Bs,Cs)) return p;
+        }
       }
     }
     return null;
+  }
+
+  function deletePiece(p){
+    if (p.placed) unplace(p);
+    stock[p.typeId] = (stock[p.typeId]||0) + 1;
+    const idx=pieces.findIndex(x=>x.id===p.id);
+    if (idx>=0) pieces.splice(idx,1);
+    renderStocks();
+  }
+
+  function rotatePiece(p){
+    const prevRot=p.rotK;
+    const prevAnchor={...p.anchor};
+    const wasPlaced=p.placed;
+    if (wasPlaced) unplace(p);
+
+    p.rotK = (p.rotK+1)%6;
+
+    if (p._inside){
+      if (canPlace(p)){
+        commitPlace(p);
+      } else {
+        p.rotK=prevRot; p.anchor=prevAnchor;
+        if (wasPlaced && canPlace(p)) commitPlace(p);
+      }
+    } else {
+      p.placed=false; p._keys=null;
+    }
   }
 
   canvas.addEventListener('pointerdown', (e)=>{
@@ -597,7 +642,6 @@
 
     const now=performance.now();
     if (now-lastTap.time<320 && lastTap.pieceId===p.id){
-      // ダブルタップ削除
       deletePiece(p);
       lastTap={time:0,pieceId:null};
       draw();
@@ -605,7 +649,6 @@
     }
     lastTap={time:now,pieceId:p.id};
 
-    // 盤面内に置いてたら一旦外す（ドラッグ中に衝突判定しないため）
     if (p.placed) unplace(p);
     startDrag(e,p);
   });
@@ -630,16 +673,15 @@
     const target={ x:w.x-drag.offset.x, y:w.y-drag.offset.y };
     const frac=worldToAxial(target.x,target.y);
 
-    // 六角内だけスナップ（外は自由）
     if (SNAP_ONLY_INSIDE){
       const inside = isInsideHexWorld(target.x, target.y);
       p._inside = inside;
       if (inside){
         p.anchor = axialRound(frac.q, frac.r);
-      }else{
+      } else {
         p.anchor = { q: frac.q, r: frac.r };
       }
-    }else{
+    } else {
       p.anchor = axialRound(frac.q, frac.r);
       p._inside = true;
     }
@@ -647,81 +689,38 @@
     draw();
   });
 
-  canvas.addEventListener('pointerup', (e)=>{
+  canvas.addEventListener('pointerup', ()=>{
     if (!drag) return;
     const p=pieces.find(x=>x.id===drag.pieceId);
     const moved=drag.moved;
     drag=null;
-
     finger.style.display="none";
     if (!p){ draw(); return; }
 
     if (!moved){
-      // タップ扱い：60°回転
       rotatePiece(p);
       draw();
       return;
     }
 
-    // ドラッグ終了：
-    // 六角内 → 置けるなら置く（衝突判定） / ダメなら戻す
-    // 六角外 → 自由配置のまま（置けなくてもOK）
     if (p._inside){
-      // anchorが整数のはず（スナップ済）
       if (canPlace(p)){
         commitPlace(p);
-      }else if (p.lastValid){
+      } else if (p.lastValid){
         p.anchor={...p.lastValid.anchor};
         p.rotK=p.lastValid.rotK;
         commitPlace(p);
-      }else{
-        // 初回でハマらないように、在庫に戻す
-        returnPieceToStock(p);
+      } else {
+        deletePiece(p);
       }
-    }else{
-      // 外は自由：占有しない
+    } else {
       p.placed=false;
       p._keys=null;
     }
 
     draw();
   });
-  canvas.addEventListener('pointercancel', ()=>{ drag=null; finger.style.display="none"; draw(); });
 
-  function rotatePiece(p){
-    const prevRot=p.rotK;
-    const prevAnchor={...p.anchor};
-    const wasPlaced=p.placed;
-    if (wasPlaced) unplace(p);
-
-    p.rotK = (p.rotK+1)%6;
-
-    // 六角内でスナップ中だけ、回転後も「置ける」を守る
-    if (p._inside){
-      if (canPlace(p)){
-        // そのままOK（置いても置かなくても良いが、最後の安定のため置く）
-        commitPlace(p);
-      }else{
-        // 置けないなら元に戻す（盤面用の挙動）
-        p.rotK=prevRot; p.anchor=prevAnchor;
-        if (wasPlaced && canPlace(p)) commitPlace(p);
-      }
-    }else{
-      // 外は自由：回転は常にOK
-      p.placed=false; p._keys=null;
-    }
-  }
-
-  function deletePiece(p){
-    if (p.placed) unplace(p);
-    stock[p.typeId] = (stock[p.typeId]||0) + 1;
-    const idx=pieces.findIndex(x=>x.id===p.id);
-    if (idx>=0) pieces.splice(idx,1);
-    renderStocks();
-  }
-  function returnPieceToStock(p){ deletePiece(p); }
-
-  // ====== ボタン ======
   document.getElementById('reset').addEventListener('click', ()=>{
     pieces.length=0; occupied=new Set();
     for (const t of TYPES) stock[t.typeId]=16;
@@ -729,9 +728,8 @@
   });
 
   document.getElementById('demo').addEventListener('click', ()=>{
-    // 盤面内に適当に置く（置けるものだけ）
     const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
-    const tries=40;
+    const tries=50;
 
     for (let i=0;i<24;i++){
       const t=TYPES[Math.floor(Math.random()*TYPES.length)];
@@ -749,9 +747,7 @@
         p._inside=true;
         if (canPlace(p)){ commitPlace(p); ok=true; break; }
       }
-      if (!ok){
-        stock[t.typeId]++; pieces.pop();
-      }
+      if (!ok){ stock[t.typeId]++; pieces.pop(); }
     }
     renderStocks(); draw();
   });

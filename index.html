@@ -108,6 +108,22 @@
   @media (max-width: 1024px){
     #right{display:none;}
   }
+  /* 山札を確実に見えるように：pile自体に柄を付ける */
+.pile.DW{background:#3b2f2a;}
+.pile.MW{background:#7a5a3d;}
+.pile.LW{background:#c9a57a;}
+.pile.WW{background:#e9e6df;}
+
+.pile.DW::after,.pile.MW::after,.pile.LW::after,.pile.WW::after{
+  content:"";
+  position:absolute; inset:0;
+  opacity:.25;
+  background-image:repeating-linear-gradient(90deg,
+    rgba(255,255,255,.10) 0 2px,
+    rgba(0,0,0,.08) 2px 5px
+  );
+  pointer-events:none;
+}
 </style>
 </head>
 <body>
@@ -237,7 +253,7 @@
     const R = SIDE*2;
     const verts=[];
     for (let i=0;i<6;i++){
-      const ang = (-90 + i*60) * Math.PI/180;
+      const ang = (-60 + i*60) * Math.PI/180;
       verts.push({ x:R*Math.cos(ang), y:R*Math.sin(ang) });
     }
     return verts;
@@ -482,7 +498,7 @@
     stocksEl.innerHTML="";
     for (const t of TYPES){
       const div=document.createElement('div');
-      div.className = "pile " + (t.shape==="TRI" ? "tri" : "rho");
+    div.className = "pile " + (t.shape==="TRI" ? "tri" : "rho") + " " + t.pattern;
 
       const tex=document.createElement('div');
       tex.className = "tex " + t.pattern;
